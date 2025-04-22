@@ -25,7 +25,6 @@ from .lib.charms.data_platform_libs.v0.data_interfaces import (
     KafkaConnectRequirerEventHandlers,
 )
 from .models import (
-    MULTICONNECTOR_PREFIX,
     ClientContext,
     ConnectApiError,
     IntegratorMode,
@@ -75,6 +74,8 @@ class BaseIntegrator(ABC, Object):
     CONFIG_SECRET_FIELD = "config"
     CONNECT_REL = "connect-client"
     PEER_REL = "peer"
+    # Used on MirrorMaker, the integrator needs to spawn 3 connectors per relation
+    MULTICONNECTOR_PREFIX = "mirror"
 
     def __init__(
         self,
@@ -204,7 +205,7 @@ class BaseIntegrator(ABC, Object):
         """Return a list of connector names that the integrator should create."""
         connectors = []
         for name in self.dynamic_config.keys():
-            if name.startswith(MULTICONNECTOR_PREFIX):
+            if name.startswith(self.MULTICONNECTOR_PREFIX):
                 connectors.append(name)
         return connectors
 
@@ -239,7 +240,7 @@ class BaseIntegrator(ABC, Object):
         if isinstance(config, list):
             for connector_config in config:
                 try:
-                    connector_id = f"{MULTICONNECTOR_PREFIX}_{connector_config['name']}_{self.connector_unique_name}"
+                    connector_id = f"{self.MULTICONNECTOR_PREFIX}_{connector_config['name']}_{self.connector_unique_name}"
                 except KeyError:
                     logger.error(
                         "List of connectors should provide a 'name' key to differentiate them"
@@ -267,7 +268,7 @@ class BaseIntegrator(ABC, Object):
             try:
                 self._client.start_connector(
                     connector_config=self.formatter.to_dict(
-                        charm_config=self.config, mode="source"
+                        charm_config=self.config, mode=self.mode
                     )
                     | self.dynamic_config[connector_name],
                     connector_name=connector_name,
@@ -280,7 +281,7 @@ class BaseIntegrator(ABC, Object):
         if not self.connector_names:
             try:
                 self._client.start_connector(
-                    self.formatter.to_dict(charm_config=self.config, mode="source")
+                    self.formatter.to_dict(charm_config=self.config, mode=self.mode)
                     | self.dynamic_config
                 )
             except ConnectApiError as e:
@@ -298,7 +299,7 @@ class BaseIntegrator(ABC, Object):
         try:
             self._client.resume_connector()
         except ConnectApiError as e:
-            logger.error(f"Unable to restart/resume the connector, details: {e}")
+            logger.error(f"Unable to restart the connector, details: {e}")
             return
 
     def patch_connector(self) -> None:
@@ -317,7 +318,7 @@ class BaseIntegrator(ABC, Object):
             try:
                 self._client.patch_connector(
                     connector_config=self.formatter.to_dict(
-                        charm_config=self.config, mode="source"
+                        charm_config=self.config, mode=self.mode
                     )
                     | self.dynamic_config[connector_name],
                     connector_name=connector_name,
@@ -330,7 +331,7 @@ class BaseIntegrator(ABC, Object):
         if not self.connector_names:
             try:
                 self._client.patch_connector(
-                    self.formatter.to_dict(charm_config=self.config, mode="source")
+                    self.formatter.to_dict(charm_config=self.config, mode=self.mode)
                     | self.dynamic_config
                 )
             except ConnectApiError as e:

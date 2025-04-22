@@ -126,6 +126,19 @@ class ConnectClient:
         if response.status_code != 204:
             raise ConnectApiError(f"Unable to stop the connector, details: {response.content}")
 
+    def delete_connector(self, connector_name: str | None = None) -> None:
+        """Deletes a connector at connectors/[CONNECTOR-NAME|connector-name] endpoint.
+
+        Raises:
+            ConnectApiError: If unsuccessful.
+        """
+        response = self.request(
+            method="DELETE", api=f"connectors/{connector_name or self.connector_name}"
+        )
+
+        if response.status_code != 204:
+            raise ConnectApiError(f"Unable to remove the connector, details: {response.content}")
+
     def patch_connector(self, connector_config: dict, connector_name: str | None = None) -> None:
         """Patches a connector by PATCHting `connector_config` to the `connectors/<CONNECTOR-NAME>` endpoint.
 
@@ -139,6 +152,9 @@ class ConnectClient:
         )
 
         if response.status_code == 200:
+            logger.debug(
+                f"Connector {connector_name or self.connector_name} patched: {connector_config}"
+            )
             return
 
         logger.error(response.content)

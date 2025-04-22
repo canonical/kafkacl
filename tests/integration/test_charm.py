@@ -58,7 +58,7 @@ async def test_deploy_cluster(ops_test: OpsTest):
 
 
 @pytest.mark.abort_on_fail
-async def test_deploy_app(ops_test: OpsTest, test_app_charm):
+async def test_deploy_source_app(ops_test: OpsTest, test_app_charm):
 
     await ops_test.model.deploy(
         test_app_charm,
@@ -77,7 +77,7 @@ async def test_deploy_app(ops_test: OpsTest, test_app_charm):
 
 
 @pytest.mark.abort_on_fail
-async def test_activate_app(ops_test: OpsTest):
+async def test_activate_source_app(ops_test: OpsTest):
     """Checks source integrator becomes active after related with MySQL."""
     # our source mysql integrator need a mysql_client relation to unblock:
     await ops_test.model.add_relation(APP_NAME, CONNECT_APP)

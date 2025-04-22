@@ -25,10 +25,6 @@ class ConnectApiError(Exception):
 IntegratorMode = Literal["source", "sink"]
 
 
-# Used on MirrorMaker, the integrator needs to spawn 3 connectors per relation
-MULTICONNECTOR_PREFIX = "mirror"
-
-
 class TaskStatus(str, Enum):
     """Enum for Connectors and Tasks status representation."""
 
