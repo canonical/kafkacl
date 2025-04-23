@@ -1,0 +1,16 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+options:
+  mode:
+    type: string
+    default: source
+    description: Either `source` or `sink`
+  file_path:
+    type: string
+    default: /var/snap/charmed-kafka/common/var/log/connect/test.jsonl
+    description: source file path
+  topic:
+    type: string
+    default: test
+    description: Name of the Apache Kafka topic
